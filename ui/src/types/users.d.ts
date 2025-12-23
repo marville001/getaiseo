@@ -16,6 +16,7 @@ export interface User {
 	roleId: string;
 	status: string;
 	isAdminUser: boolean;
+	isOnboarded: boolean;
 	phoneVerified: boolean;
 	emailVerified: boolean;
 	emailVerificationToken: null;

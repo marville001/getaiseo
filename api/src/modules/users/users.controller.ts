@@ -105,6 +105,11 @@ export class UsersController {
 		);
 	}
 
+	@Get(':userId/is-onboarded')
+	checkIfOnboarded(@Param('userId') userId: string) {
+		return this.usersService.checkIfOnboarded(userId);
+	}
+
 	@Get('profile')
 	@UseGuards(JwtAuthGuard)
 	getProfile(@CurrentUser() user: JwtPayload) {

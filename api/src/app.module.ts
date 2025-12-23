@@ -13,6 +13,7 @@ import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { LoggingModule } from './modules/logging/logging.module';
 import { MailModule } from './modules/mail/mail.module';
+import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { OpenAiModule } from './modules/openai/openai.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
 import { SettingsModule } from './modules/settings/settings.module';
@@ -82,6 +83,7 @@ import { UsersModule } from './modules/users/users.module';
 		SettingsModule,
 		OpenAiModule,
 		AdminModule,
+		OnboardingModule,
 	],
 	providers: [
 		// Global guards
