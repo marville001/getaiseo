@@ -39,7 +39,7 @@ const menuItems: MenuItem[] = [
     icon: Users,
   },
   {
-    title: "Settings",
+    title: "System Settings",
     href: "/dashboard/settings",
     icon: Settings,
     children: []
