@@ -64,9 +64,15 @@ export class OnboardingService {
 	}
 
 	/**
-	 * Perform full scraping of main page and internal pages
+	 * Perform full scraping of main page and all nested internal pages recursively
 	 */
 	private async performFullScraping(websiteId: string, websiteUrl: string): Promise<void> {
+		const MAX_PAGES_TO_SCRAPE = 200; // Safety limit
+		const visitedUrls = new Set<string>();
+		const urlQueue: { url: string; depth: number }[] = [];
+		let scrapedCount = 0;
+		let totalPagesFound = 1; // Start with main page
+
 		try {
 			// Step 1: Scrape the main page
 			const mainPageData = await this.webScraperService.scrapeWebsite(websiteUrl);
@@ -94,10 +100,22 @@ export class OnboardingService {
 				},
 			);
 
-			// Step 2: Create pending page entries for all internal links
-			const internalLinks = mainPageData.internalLinks || [];
-			if (internalLinks.length > 0) {
-				const pageEntries: Partial<WebsitePage>[] = internalLinks.map(link => ({
+			// Add homepage URL to visited
+			visitedUrls.add(this.normalizeUrl(websiteUrl));
+
+			// Step 2: Add all homepage internal links to the queue
+			const homepageInternalLinks = mainPageData.internalLinks || [];
+			for (const link of homepageInternalLinks) {
+				const normalizedLink = this.normalizeUrl(link);
+				if (!visitedUrls.has(normalizedLink)) {
+					urlQueue.push({ url: normalizedLink, depth: 1 });
+					visitedUrls.add(normalizedLink);
+				}
+			}
+
+			// Create pending page entries for initial links
+			if (homepageInternalLinks.length > 0) {
+				const pageEntries: Partial<WebsitePage>[] = homepageInternalLinks.map(link => ({
 					websiteId,
 					pageUrl: link,
 					pagePath: this.extractPath(link),
@@ -106,17 +124,19 @@ export class OnboardingService {
 				}));
 
 				await this.onboardingRepository.createPages(pageEntries);
+				totalPagesFound += homepageInternalLinks.length;
 			}
 
-			// Step 3: Scrape each internal page
-			let scrapedCount = 0;
-			for (const link of internalLinks) {
+			// Step 3: Process queue recursively - scrape all nested pages
+			while (urlQueue.length > 0 && scrapedCount < MAX_PAGES_TO_SCRAPE) {
+				const { url, depth } = urlQueue.shift()!;
+
 				try {
-					const pageData = await this.webScraperService.scrapePage(link, websiteUrl);
+					const pageData = await this.webScraperService.scrapePage(url, websiteUrl);
 
 					if (pageData) {
 						// Update the page record
-						const existingPage = await this.onboardingRepository.findPageByUrl(websiteId, link);
+						const existingPage = await this.onboardingRepository.findPageByUrl(websiteId, url);
 						if (existingPage) {
 							await this.onboardingRepository.updatePage(existingPage.pageId, {
 								pageTitle: pageData.title,
@@ -137,10 +157,44 @@ export class OnboardingService {
 							});
 							scrapedCount++;
 						}
+
+						// Discover nested internal links and add them to queue
+						const nestedInternalLinks = pageData.internalLinks || [];
+						const newLinksToAdd: Partial<WebsitePage>[] = [];
+
+						for (const nestedLink of nestedInternalLinks) {
+							const normalizedNestedLink = this.normalizeUrl(nestedLink);
+							if (!visitedUrls.has(normalizedNestedLink)) {
+								// Add to queue for scraping
+								urlQueue.push({ url: normalizedNestedLink, depth: depth + 1 });
+								visitedUrls.add(normalizedNestedLink);
+
+								// Prepare page entry for database
+								newLinksToAdd.push({
+									websiteId,
+									pageUrl: normalizedNestedLink,
+									pagePath: this.extractPath(normalizedNestedLink),
+									scrapingStatus: PageScrapingStatus.PENDING,
+									depth: depth + 1,
+								});
+							}
+						}
+
+						// Create page entries for newly discovered nested links
+						if (newLinksToAdd.length > 0) {
+							await this.onboardingRepository.createPages(newLinksToAdd);
+							totalPagesFound += newLinksToAdd.length;
+
+							// Update total pages found count
+							await this.onboardingRepository.update(
+								{ websiteId },
+								{ totalPagesFound },
+							);
+						}
 					}
 				} catch (error) {
-					this.logger.warn(`Failed to scrape page ${link}:`, error.message);
-					const existingPage = await this.onboardingRepository.findPageByUrl(websiteId, link);
+					this.logger.warn(`Failed to scrape page ${url}:`, error.message);
+					const existingPage = await this.onboardingRepository.findPageByUrl(websiteId, url);
 					if (existingPage) {
 						await this.onboardingRepository.updatePage(existingPage.pageId, {
 							scrapingStatus: PageScrapingStatus.FAILED,
@@ -155,7 +209,7 @@ export class OnboardingService {
 					{ totalPagesScraped: scrapedCount + 1 }, // +1 for main page
 				);
 
-				// Small delay between requests
+				// Small delay between requests to be polite
 				await this.delay(300);
 			}
 
@@ -165,8 +219,11 @@ export class OnboardingService {
 				{
 					scrapingStatus: WebsiteScrapingStatus.COMPLETED,
 					totalPagesScraped: scrapedCount + 1,
+					totalPagesFound,
 				},
 			);
+
+			this.logger.log(`Completed scraping website ${websiteId}: ${scrapedCount + 1} pages scraped, ${totalPagesFound} total pages found`);
 
 		} catch (error) {
 			this.logger.error(`Full scraping failed for website ${websiteId}:`, error);
@@ -179,6 +236,20 @@ export class OnboardingService {
 					scrapingError: error.message,
 				},
 			);
+		}
+	}
+
+	/**
+	 * Normalize URL by removing trailing slash and ensuring consistent format
+	 */
+	private normalizeUrl(url: string): string {
+		try {
+			const parsed = new URL(url);
+			let normalized = parsed.origin + parsed.pathname;
+			normalized = normalized.replace(/\/$/, ''); // Remove trailing slash
+			return normalized;
+		} catch {
+			return url;
 		}
 	}
 

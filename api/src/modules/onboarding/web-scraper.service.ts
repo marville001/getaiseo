@@ -32,8 +32,7 @@ export interface ScrapedPageData {
 @Injectable()
 export class WebScraperService {
 	private readonly logger = new Logger(WebScraperService.name);
-	private readonly MAX_PAGES_TO_SCRAPE = 50; // Limit pages to scrape
-	private readonly MAX_DEPTH = 2; // Maximum depth level for nested scraping
+	private readonly MAX_PAGES_TO_SCRAPE = 200; // Limit pages to scrape
 	private readonly SCRAPE_DELAY_MS = 500; // Delay between requests to be polite
 
 	async scrapeWebsite(url: string): Promise<ScrapedWebsiteData> {
@@ -104,12 +103,13 @@ export class WebScraperService {
 	}
 
 	/**
-	 * Discover and scrape internal pages recursively
+	 * Discover and scrape internal pages recursively with unlimited depth
 	 */
 	async discoverAndScrapePages(
 		baseUrl: string,
 		onPageDiscovered?: (urls: string[]) => Promise<void>,
 		onPageScraped?: (page: ScrapedPageData) => Promise<void>,
+		maxDepth?: number, // Optional max depth, undefined = unlimited
 	): Promise<ScrapedPageData[]> {
 		const normalizedBaseUrl = this.normalizeUrl(baseUrl);
 		const baseDomain = this.extractDomain(normalizedBaseUrl);
@@ -137,12 +137,12 @@ export class WebScraperService {
 			}
 		}
 
-		// Process queue
+		// Process queue with recursive discovery (no depth limit unless specified)
 		while (urlsToScrape.length > 0 && scrapedPages.length < this.MAX_PAGES_TO_SCRAPE) {
 			const { url, depth } = urlsToScrape.shift()!;
 
-			// Skip if we've reached max depth
-			if (depth > this.MAX_DEPTH) {
+			// Skip if we've reached max depth (only if maxDepth is specified)
+			if (maxDepth !== undefined && depth > maxDepth) {
 				continue;
 			}
 
@@ -158,8 +158,10 @@ export class WebScraperService {
 					await onPageScraped(pageData);
 				}
 
-				// Add new internal links to queue (only if not at max depth)
-				if (depth < this.MAX_DEPTH && pageData.internalLinks) {
+				// Add new internal links to queue for recursive scraping
+				// Only add if we haven't hit max depth or if there's no depth limit
+				const shouldAddNestedLinks = maxDepth === undefined || depth < maxDepth;
+				if (shouldAddNestedLinks && pageData.internalLinks) {
 					for (const link of pageData.internalLinks) {
 						const normalizedLink = this.normalizeInternalUrl(link, normalizedBaseUrl);
 						if (normalizedLink && !visitedUrls.has(normalizedLink)) {

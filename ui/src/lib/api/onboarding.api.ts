@@ -119,7 +119,7 @@ export const onboardingApi = {
 		return response.data?.data;
 	},
 
-	// Get all user's pages (for backlinks)
+	// Get all user's pages
 	getAllUserPages: async (): Promise<WebsitePage[]> => {
 		const response = await api.get('/onboarding/pages');
 		return response.data?.data;

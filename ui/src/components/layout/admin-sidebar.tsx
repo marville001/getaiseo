@@ -6,6 +6,7 @@ import { useUserStore } from '@/stores/user.store';
 import {
   Brain,
   ChevronDown,
+  Key,
   LayoutDashboard,
   Link2,
   LogOut,
@@ -40,8 +41,13 @@ const menuItems: MenuItem[] = [
     icon: Users,
   },
   {
-    title: "Backlinks",
-    href: "/dashboard/backlinks",
+    title: "Keywords",
+    href: "/dashboard/keywords",
+    icon: Key,
+  },
+  {
+    title: "Wibsite Pages",
+    href: "/dashboard/pages",
     icon: Link2,
   },
   {

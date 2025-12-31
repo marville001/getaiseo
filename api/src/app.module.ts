@@ -11,6 +11,7 @@ import { DatabaseModule } from './database/database.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { KeywordsModule } from './modules/keywords/keywords.module';
 import { LoggingModule } from './modules/logging/logging.module';
 import { MailModule } from './modules/mail/mail.module';
 import { OnboardingModule } from './modules/onboarding/onboarding.module';
@@ -84,6 +85,7 @@ import { UsersModule } from './modules/users/users.module';
 		OpenAiModule,
 		AdminModule,
 		OnboardingModule,
+		KeywordsModule,
 	],
 	providers: [
 		// Global guards

@@ -78,7 +78,7 @@ const StatusBadge = ({ status }: { status: WebsitePage["scrapingStatus"]; }) => 
 	);
 };
 
-export default function BacklinksPage() {
+export default function WebsitePagesPage() {
 	const [pages, setPages] = useState<WebsitePage[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -160,7 +160,7 @@ export default function BacklinksPage() {
 							<div>
 								<CardTitle className="flex items-center gap-2">
 									<Link2 className="h-5 w-5" />
-									Backlinks
+									Website Pages
 								</CardTitle>
 								<CardDescription>
 									View and manage scraped website pages

@@ -79,7 +79,7 @@ export class OnboardingController {
 	}
 
 	/**
-	 * Get all user's pages (for backlinks page)
+	 * Get all user's pages
 	 */
 	@Get('pages')
 	async getAllUserPages(@CurrentUser() user: JwtPayload) {
