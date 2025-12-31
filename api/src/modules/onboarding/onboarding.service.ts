@@ -69,7 +69,7 @@ export class OnboardingService {
 	private async performFullScraping(websiteId: string, websiteUrl: string): Promise<void> {
 		const MAX_PAGES_TO_SCRAPE = 200; // Safety limit
 		const visitedUrls = new Set<string>();
-		const urlQueue: { url: string; depth: number }[] = [];
+		const urlQueue: { url: string; depth: number; }[] = [];
 		let scrapedCount = 0;
 		let totalPagesFound = 1; // Start with main page
 
