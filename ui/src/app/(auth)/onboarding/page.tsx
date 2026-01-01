@@ -167,7 +167,8 @@ export default function OnboardingPage() {
 		try {
 			await onboardingApi.completeOnboarding();
 			toast.success('Welcome to GetAISEO!');
-			router.push('/dashboard');
+			// router.push('/dashboard');
+			window.location.href = '/dashboard';
 
 		} catch (error) {
 			console.error('Failed to complete onboarding:', error);
