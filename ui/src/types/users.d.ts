@@ -2,7 +2,7 @@
 import { Role } from './permissions';
 
 export interface User {
-	userId: number;
+	userId: string;
 	createdAt: string;
 	avatarUrl?: string;
 	updatedAt: string;

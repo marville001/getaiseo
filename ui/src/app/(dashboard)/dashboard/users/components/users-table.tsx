@@ -276,7 +276,7 @@ export function UsersTable({ }: UsersTableProps) {
 								</TableRow>
 							) : (
 								filteredUsers.map((user: User) => (
-									<TableRow key={user.id}>
+									<TableRow key={user.userId}>
 										<TableCell>
 											<div className="flex items-center gap-3">
 												<div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
@@ -313,7 +313,7 @@ export function UsersTable({ }: UsersTableProps) {
 											</div>
 										</TableCell>
 										<TableCell>
-											{getRoleBadge(user.role, user.isAdminUser)}
+											{getRoleBadge(user.userRole?.name, user.isAdminUser)}
 										</TableCell>
 										<TableCell>
 											{getStatusBadge(user.status)}
