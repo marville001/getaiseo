@@ -340,4 +340,33 @@ export class KeywordsService {
 			order: { keyword: 'ASC' },
 		});
 	}
+
+	// Bulk update primary status for multiple keywords
+	async bulkUpdatePrimaryStatus(keywordIds: string[], userId: string, isPrimary: boolean): Promise<Keyword[]> {
+		const updatedKeywords: Keyword[] = [];
+
+		for (const keywordId of keywordIds) {
+			try {
+				const updated = await this.updatePrimaryStatus(keywordId, userId, isPrimary);
+				updatedKeywords.push(updated);
+			} catch (error) {
+				this.logger.error(`Failed to update primary status for keyword ${keywordId}: ${error.message}`);
+			}
+		}
+
+		return updatedKeywords;
+	}
+
+	// Bulk update parent keyword for multiple secondary keywords
+	async bulkUpdateParentKeyword(keywordIds: string[], userId: string, parentKeywordId: string | null): Promise<Keyword[]> {
+		const updatedKeywords = await Promise.all(keywordIds.map(async (keywordId) => {
+			try {
+				return await this.updateParentKeyword(keywordId, userId, parentKeywordId);
+			} catch (error) {
+				this.logger.error(`Failed to update parent keyword for keyword ${keywordId}: ${error.message}`);
+			}
+		}));
+
+		return updatedKeywords;
+	}
 }

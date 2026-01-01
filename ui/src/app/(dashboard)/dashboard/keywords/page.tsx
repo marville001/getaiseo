@@ -145,12 +145,21 @@ export default function KeywordsPage() {
 	const [deletingId, setDeletingId] = useState<string | null>(null);
 	const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 	const [isDeletingMultiple, setIsDeletingMultiple] = useState(false);
+	const [isUpdatingMultiplePrimary, setIsUpdatingMultiplePrimary] = useState(false);
+	const [isUpdatingMultipleParent, setIsUpdatingMultipleParent] = useState(false);
 	const [togglingPrimaryId, setTogglingPrimaryId] = useState<string | null>(null);
 	const [updatingParentId, setUpdatingParentId] = useState<string | null>(null);
 	const [typeFilter, setTypeFilter] = useState<"all" | "primary" | "secondary">("all");
 
 	// Get primary keywords for parent selection
 	const primaryKeywords = keywords.filter((k) => k.isPrimary);
+
+	// Check if all selected keywords are secondary (for bulk parent assignment)
+	const allSelectedAreSecondary = selectedIds.size > 0 &&
+		Array.from(selectedIds).every((id) => {
+			const keyword = keywords.find((k) => k.keywordId === id);
+			return keyword && !keyword.isPrimary;
+		});
 
 	// Filter keywords by type
 	const filteredKeywords = keywords.filter((k) => {
@@ -289,6 +298,67 @@ export default function KeywordsPage() {
 		}
 	};
 
+	const handleBulkSetPrimary = async (isPrimary: boolean) => {
+		if (selectedIds.size === 0) return;
+
+		try {
+			setIsUpdatingMultiplePrimary(true);
+			const updatedKeywords = await keywordsApi.bulkUpdatePrimaryStatus(
+				Array.from(selectedIds),
+				isPrimary
+			);
+			setKeywords((prev) =>
+				prev.map((k) => {
+					const updated = updatedKeywords.find((u) => u.keywordId === k.keywordId);
+					return updated || k;
+				})
+			);
+			setSelectedIds(new Set());
+			toast.success(
+				`${selectedIds.size} keyword${selectedIds.size > 1 ? "s" : ""} set as ${isPrimary ? "Primary" : "Secondary"}`
+			);
+		} catch (err) {
+			toast.error("Failed to update keywords");
+			console.error("Error updating keywords:", err);
+		} finally {
+			setIsUpdatingMultiplePrimary(false);
+		}
+	};
+
+	const handleBulkSetParent = async (parentKeywordId: string | null) => {
+		if (selectedIds.size === 0) return;
+
+		try {
+			setIsUpdatingMultipleParent(true);
+			const updatedKeywords = await keywordsApi.bulkUpdateParentKeyword(
+				Array.from(selectedIds),
+				parentKeywordId
+			);
+			setKeywords((prev) =>
+				prev.map((k) => {
+					const updated = updatedKeywords.find((u) => u.keywordId === k.keywordId);
+					return updated || k;
+				})
+			);
+			setSelectedIds(new Set());
+			if (parentKeywordId) {
+				const parentKeyword = keywords.find((k) => k.keywordId === parentKeywordId);
+				toast.success(
+					`${selectedIds.size} keyword${selectedIds.size > 1 ? "s" : ""} assigned to "${parentKeyword?.keyword}"`
+				);
+			} else {
+				toast.success(
+					`Parent removed from ${selectedIds.size} keyword${selectedIds.size > 1 ? "s" : ""}`
+				);
+			}
+		} catch (err) {
+			toast.error("Failed to update parent keyword");
+			console.error("Error updating parent keyword:", err);
+		} finally {
+			setIsUpdatingMultipleParent(false);
+		}
+	};
+
 	// Calculate stats
 	const stats = {
 		total: keywords.length,
@@ -380,19 +450,81 @@ export default function KeywordsPage() {
 									</SelectContent>
 								</Select>
 								{selectedIds.size > 0 && (
-									<Button
-										variant="destructive"
-										size="sm"
-										onClick={handleDeleteSelected}
-										disabled={isDeletingMultiple}
-									>
-										{isDeletingMultiple ? (
-											<Loader2 className="h-4 w-4 mr-2 animate-spin" />
-										) : (
-											<Trash2 className="h-4 w-4 mr-2" />
+									<>
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => handleBulkSetPrimary(true)}
+											disabled={isUpdatingMultiplePrimary}
+										>
+											{isUpdatingMultiplePrimary ? (
+												<Loader2 className="h-4 w-4 mr-2 animate-spin" />
+											) : (
+												<Crown className="h-4 w-4 mr-2 text-purple-600" />
+											)}
+											Set Primary
+										</Button>
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => handleBulkSetPrimary(false)}
+											disabled={isUpdatingMultiplePrimary}
+										>
+											{isUpdatingMultiplePrimary ? (
+												<Loader2 className="h-4 w-4 mr-2 animate-spin" />
+											) : null}
+											Set Secondary
+										</Button>
+										{allSelectedAreSecondary && primaryKeywords.length > 0 && (
+											<DropdownMenu>
+												<DropdownMenuTrigger asChild>
+													<Button
+														variant="outline"
+														size="sm"
+														disabled={isUpdatingMultipleParent}
+													>
+														{isUpdatingMultipleParent ? (
+															<Loader2 className="h-4 w-4 mr-2 animate-spin" />
+														) : (
+															<Link2 className="h-4 w-4 mr-2 text-blue-600" />
+														)}
+														Assign Parent
+													</Button>
+												</DropdownMenuTrigger>
+												<DropdownMenuContent align="end" className="max-h-64 overflow-y-auto">
+													<DropdownMenuItem
+														onClick={() => handleBulkSetParent(null)}
+													>
+														<Unlink className="h-4 w-4 mr-2" />
+														Remove Parent
+													</DropdownMenuItem>
+													<DropdownMenuSeparator />
+													{primaryKeywords.map((primary) => (
+														<DropdownMenuItem
+															key={primary.keywordId}
+															onClick={() => handleBulkSetParent(primary.keywordId)}
+														>
+															<Crown className="h-4 w-4 mr-2 text-purple-600" />
+															{primary.keyword}
+														</DropdownMenuItem>
+													))}
+												</DropdownMenuContent>
+											</DropdownMenu>
 										)}
-										Delete ({selectedIds.size})
-									</Button>
+										<Button
+											variant="destructive"
+											size="sm"
+											onClick={handleDeleteSelected}
+											disabled={isDeletingMultiple}
+										>
+											{isDeletingMultiple ? (
+												<Loader2 className="h-4 w-4 mr-2 animate-spin" />
+											) : (
+												<Trash2 className="h-4 w-4 mr-2" />
+											)}
+											Delete ({selectedIds.size})
+										</Button>
+									</>
 								)}
 								<Button
 									variant="outline"
@@ -599,7 +731,7 @@ export default function KeywordsPage() {
 															<TooltipTrigger className="text-left truncate block max-w-32">
 																<Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
 																	<Link2 className="h-3 w-3 mr-1" />
-																	{keywords.find(k => k.keywordId === keyword.parentKeywordId)?.keyword || "Unknown"}
+																	{keywords.find(k => k.keywordId === keyword.parentKeywordId)?.keyword?.substring(0, 15) || "Unknown"}
 																</Badge>
 															</TooltipTrigger>
 															<TooltipContent>

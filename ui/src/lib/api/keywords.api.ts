@@ -85,4 +85,16 @@ export const keywordsApi = {
 		const response = await api.get('/keywords/primary/list');
 		return response.data?.data;
 	},
+
+	// Bulk update primary status for multiple keywords
+	bulkUpdatePrimaryStatus: async (keywordIds: string[], isPrimary: boolean): Promise<Keyword[]> => {
+		const response = await api.post('/keywords/bulk-primary', { keywordIds, isPrimary });
+		return response.data?.data;
+	},
+
+	// Bulk update parent keyword for multiple secondary keywords
+	bulkUpdateParentKeyword: async (keywordIds: string[], parentKeywordId: string | null): Promise<Keyword[]> => {
+		const response = await api.post('/keywords/bulk-parent', { keywordIds, parentKeywordId });
+		return response.data?.data;
+	},
 };

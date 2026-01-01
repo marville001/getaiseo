@@ -79,4 +79,22 @@ export class KeywordsController {
 		await this.keywordsService.deleteMultipleKeywords(keywordIds, user.sub);
 		return true;
 	}
+
+	@Post('bulk-primary')
+	async bulkUpdatePrimaryStatus(
+		@CurrentUser() user: JwtPayload,
+		@Body('keywordIds') keywordIds: string[],
+		@Body('isPrimary') isPrimary: boolean,
+	) {
+		return await this.keywordsService.bulkUpdatePrimaryStatus(keywordIds, user.sub, isPrimary);
+	}
+
+	@Post('bulk-parent')
+	async bulkUpdateParentKeyword(
+		@CurrentUser() user: JwtPayload,
+		@Body('keywordIds') keywordIds: string[],
+		@Body('parentKeywordId') parentKeywordId: string | null,
+	) {
+		return await this.keywordsService.bulkUpdateParentKeyword(keywordIds, user.sub, parentKeywordId);
+	}
 }
