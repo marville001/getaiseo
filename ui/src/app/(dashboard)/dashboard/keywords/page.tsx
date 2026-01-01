@@ -51,11 +51,13 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Article, articlesApi } from "@/lib/api/articles.api";
 import { Keyword, keywordsApi } from "@/lib/api/keywords.api";
 import {
 	AlertCircle,
 	Check,
 	Crown,
+	FileText,
 	Filter,
 	Key,
 	Link2,
@@ -63,14 +65,17 @@ import {
 	MoreHorizontal,
 	Plus,
 	RefreshCw,
+	Sparkles,
 	Target,
 	Trash2,
 	TrendingUp,
 	Unlink
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import AddKeywordsModal from "./components/add-keywords-modal";
+import GenerateArticleModal from "./components/generate-article-modal";
 
 // Difficulty badge component - shows score with yellow-to-red gradient
 const DifficultyBadge = ({ difficulty }: { difficulty: number; }) => {
@@ -135,10 +140,14 @@ const TypeBadge = ({ isPrimary }: { isPrimary: boolean; }) => {
 };
 
 export default function KeywordsPage() {
+	const router = useRouter();
 	const [keywords, setKeywords] = useState<Keyword[]>([]);
+	const [keywordArticles, setKeywordArticles] = useState<Map<string, Article>>(new Map());
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+	const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
+	const [selectedKeywordForArticle, setSelectedKeywordForArticle] = useState<Keyword | null>(null);
 	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 	const [keywordToDelete, setKeywordToDelete] = useState<Keyword | null>(null);
 	const [reanalyzingId, setReanalyzingId] = useState<string | null>(null);
@@ -175,6 +184,14 @@ export default function KeywordsPage() {
 			setError(null);
 			const data = await keywordsApi.getKeywords();
 			setKeywords(data || []);
+
+			// Fetch articles for primary keywords
+			const articles = await articlesApi.getArticles();
+			const articleMap = new Map<string, Article>();
+			articles.forEach((article) => {
+				articleMap.set(article.primaryKeywordId, article);
+			});
+			setKeywordArticles(articleMap);
 		} catch (err) {
 			setError("Failed to load keywords. Please try again.");
 			console.error("Error fetching keywords:", err);
@@ -186,6 +203,30 @@ export default function KeywordsPage() {
 	useEffect(() => {
 		fetchKeywords();
 	}, [fetchKeywords]);
+
+	// Get secondary keywords for a primary keyword
+	const getSecondaryKeywordsForPrimary = (primaryKeywordId: string) => {
+		return keywords.filter((k) => k.parentKeywordId === primaryKeywordId);
+	};
+
+	// Handle Generate Article click
+	const handleGenerateArticleClick = (keyword: Keyword) => {
+		setSelectedKeywordForArticle(keyword);
+		setIsGenerateModalOpen(true);
+	};
+
+	// Handle Read Article click
+	const handleReadArticleClick = (keyword: Keyword) => {
+		const article = keywordArticles.get(keyword.keywordId);
+		if (article) {
+			router.push(`/dashboard/articles/${article.articleId}`);
+		}
+	};
+
+	// Handle Article Generation Success
+	const handleArticleGenerationSuccess = (article: Article) => {
+		setKeywordArticles((prev) => new Map(prev).set(article.primaryKeywordId, article));
+	};
 
 	const handleReanalyze = async (keyword: Keyword) => {
 		try {
@@ -762,6 +803,29 @@ export default function KeywordsPage() {
 															</Button>
 														</DropdownMenuTrigger>
 														<DropdownMenuContent align="end">
+															{/* Generate Article / Read Article action for primary keywords */}
+															{keyword.isPrimary && (
+																<>
+																	{keywordArticles.has(keyword.keywordId) ? (
+																		<DropdownMenuItem
+																			onClick={() => handleReadArticleClick(keyword)}
+																			className="text-green-600"
+																		>
+																			<FileText className="h-4 w-4 mr-2" />
+																			Read Article
+																		</DropdownMenuItem>
+																	) : (
+																		<DropdownMenuItem
+																			onClick={() => handleGenerateArticleClick(keyword)}
+																			className="text-purple-600"
+																		>
+																			<Sparkles className="h-4 w-4 mr-2" />
+																			Generate Article
+																		</DropdownMenuItem>
+																	)}
+																	<DropdownMenuSeparator />
+																</>
+															)}
 															<DropdownMenuItem
 																onClick={() => handleTogglePrimary(keyword)}
 																disabled={togglingPrimaryId === keyword.keywordId}
@@ -856,6 +920,20 @@ export default function KeywordsPage() {
 					onOpenChange={setIsAddModalOpen}
 					onSuccess={fetchKeywords}
 				/>
+
+				{/* Generate Article Modal */}
+				{selectedKeywordForArticle && (
+					<GenerateArticleModal
+						open={isGenerateModalOpen}
+						onOpenChange={(open) => {
+							setIsGenerateModalOpen(open);
+							if (!open) setSelectedKeywordForArticle(null);
+						}}
+						keyword={selectedKeywordForArticle}
+						secondaryKeywords={getSecondaryKeywordsForPrimary(selectedKeywordForArticle.keywordId)}
+						onSuccess={handleArticleGenerationSuccess}
+					/>
+				)}
 
 				{/* Delete Confirmation Dialog */}
 				<AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

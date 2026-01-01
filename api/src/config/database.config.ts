@@ -1,3 +1,4 @@
+import { Article } from '@/modules/articles/entities/article.entity';
 import { AuditLog } from '@/modules/audit/entities/audit-log.entity';
 import { Keyword } from '@/modules/keywords/entities/keyword.entity';
 import { UserWebsite } from '@/modules/onboarding/entities/user-website.entity';
@@ -25,6 +26,7 @@ export const entities = [
   UserWebsite,
   WebsitePage,
   Keyword,
+  Article
 ];
 
 export default new DataSource({

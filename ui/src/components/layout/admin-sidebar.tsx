@@ -6,6 +6,7 @@ import { useUserStore } from '@/stores/user.store';
 import {
   Brain,
   ChevronDown,
+  FileText,
   Key,
   LayoutDashboard,
   Link2,
@@ -44,6 +45,11 @@ const menuItems: MenuItem[] = [
     title: "Keywords",
     href: "/dashboard/keywords",
     icon: Key,
+  },
+  {
+    title: "Articles",
+    href: "/dashboard/articles",
+    icon: FileText,
   },
   {
     title: "Wibsite Pages",
@@ -197,22 +203,22 @@ export default function AdminSidebar() {
           </nav>
 
           {/* User Info */}
-          <div className="px-4 py-4 border-t border-gray-200">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+          <div className="px-4 py-4 border-t border-gray-200 w-full">
+            <div className="flex items-center justify-between w-full ">
+              <div className="flex items-center w-full truncate">
+                <div className="w-8 h-8 bg-primary shrink-0 rounded-full flex items-center justify-center">
                   <Shield className="h-4 w-4 text-white" />
                 </div>
-                <div className="ml-3">
+                <div className="ml-3 w-full ">
                   <p className="text-sm font-medium text-gray-900">{user?.firstName} {user?.lastName}</p>
-                  <p className="text-xs text-gray-500">{user?.email}</p>
+                  <p className="text-xs text-gray-500 w-full truncate line-clamp-1">{user?.email}</p>
                 </div>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleLogout}
-                className="text-gray-600 hover:text-red-600 hover:bg-red-50"
+                className="text-gray-600 shrink-0 flex-1 hover:text-red-600 hover:bg-red-50"
                 title="Logout"
               >
                 <LogOut className="h-4 w-4" />
