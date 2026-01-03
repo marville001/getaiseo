@@ -64,8 +64,8 @@ const menuItems: MenuItem[] = [
     children: []
   },
   {
-    title: "Accounts",
-    href: "/dashboard/accounts",
+    title: "Profile",
+    href: "/dashboard/profile",
     icon: User,
     children: []
   },
