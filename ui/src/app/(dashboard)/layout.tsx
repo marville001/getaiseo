@@ -3,6 +3,7 @@ import { getCurrentUser } from '@/lib/session';
 import type { Metadata } from "next";
 import { redirect } from 'next/navigation';
 import { PropsWithChildren } from 'react';
+;
 
 export const metadata: Metadata = {
   robots: {
@@ -16,6 +17,10 @@ export default async function Layout({ children }: PropsWithChildren) {
 
   if (!currentUser) {
     return redirect('/login');
+  }
+
+  if (currentUser.isAdminUser) {
+    return redirect('/admin');
   }
 
   return (
