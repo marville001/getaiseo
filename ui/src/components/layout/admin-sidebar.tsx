@@ -14,6 +14,7 @@ import {
   Menu,
   Settings,
   Shield,
+  User,
   Users,
   X
 } from "lucide-react";
@@ -67,6 +68,12 @@ const menuItems: MenuItem[] = [
     href: "/dashboard/activity-logs",
     icon: Shield,
     children: [],
+  },
+  {
+    title: "Profile",
+    href: "/dashboard/profile",
+    icon: User,
+    children: []
   },
 ];
 
