@@ -16,7 +16,7 @@ import { useState } from "react";
 interface ActivityLogsProps {
 }
 
-export function ActivityLogsTable({}: ActivityLogsProps) {
+export function ActivityLogsTable({ }: ActivityLogsProps) {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [searchQuery, setSearchQuery] = useState("");
@@ -184,8 +184,6 @@ export function ActivityLogsTable({}: ActivityLogsProps) {
                             <TableHead>Action</TableHead>
                             <TableHead>Performer</TableHead>
                             <TableHead>Target Type</TableHead>
-                            <TableHead>Target ID</TableHead>
-                            <TableHead>IP Address</TableHead>
                             <TableHead>Timestamp</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -214,19 +212,8 @@ export function ActivityLogsTable({}: ActivityLogsProps) {
                                         </div>
                                     </TableCell>
                                     <TableCell>{getActionBadge(log.action)}</TableCell>
-                                    <TableCell>
-                                        <div>
-                                            <p className="font-medium">{log.performerName}</p>
-                                            <p className="text-sm text-muted-foreground">ID: {log.performedBy}</p>
-                                        </div>
-                                    </TableCell>
+                                    <TableCell className="font-medium">{log.performerName}</TableCell>
                                     <TableCell>{getTargetTypeBadge(log.targetType)}</TableCell>
-                                    <TableCell>
-                                        <span className="font-mono text-sm">{log.targetId.substring(0, 12)}...</span>
-                                    </TableCell>
-                                    <TableCell>
-                                        <span className="font-mono text-sm">{log.ipAddress}</span>
-                                    </TableCell>
                                     <TableCell>
                                         <div>
                                             <p className="text-sm">{format(new Date(log.createdAt), "MMM dd, yyyy")}</p>
