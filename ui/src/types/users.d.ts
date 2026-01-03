@@ -1,5 +1,4 @@
-
-import { Role } from './permissions';
+import { Role } from "./permissions";
 
 export interface User {
 	userId: string;
