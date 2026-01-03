@@ -2,7 +2,7 @@
 import { Role } from './permissions';
 
 export interface User {
-	userId: number;
+	userId: string;
 	createdAt: string;
 	avatarUrl?: string;
 	updatedAt: string;
@@ -16,6 +16,7 @@ export interface User {
 	roleId: string;
 	status: string;
 	isAdminUser: boolean;
+	isOnboarded: boolean;
 	phoneVerified: boolean;
 	emailVerified: boolean;
 	emailVerificationToken: null;
