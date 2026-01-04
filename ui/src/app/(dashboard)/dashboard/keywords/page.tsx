@@ -58,6 +58,8 @@ import {
 	ArrowDown,
 	ArrowUp,
 	Check,
+	ChevronDown,
+	ChevronRight,
 	Crown,
 	FileText,
 	Filter,
@@ -74,7 +76,7 @@ import {
 	Unlink
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import AddKeywordsModal from "./components/add-keywords-modal";
 import GenerateArticleModal from "./components/generate-article-modal";
@@ -147,7 +149,7 @@ export default function KeywordsPage() {
 	const [keywordArticles, setKeywordArticles] = useState<Map<string, Article>>(new Map());
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
-	const [expandedRow, setExpandedRow] = useState<string | null>("");
+	const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set([]));
 	const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 	const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
 	const [selectedKeywordForArticle, setSelectedKeywordForArticle] = useState<Keyword | null>(null);
@@ -169,110 +171,81 @@ export default function KeywordsPage() {
 	// Get primary keywords for parent selection
 	const primaryKeywords = keywords.filter((k) => k.isPrimary);
 
+	console.log({ expandedRows });
+
+
 	const allSelectedAreSecondary = selectedIds.size > 0 &&
 		Array.from(selectedIds).every((id) => {
 			const keyword = keywords.find((k) => k.keywordId === id);
 			return keyword && !keyword.isPrimary;
 		});
 
- // Filter and organize keywords hierarchically
-  const filteredKeywords = (() => {
-    // First, filter based on type
-    const filtered = keywords.filter((k) => {
-      if (typeFilter === "all") return true;
-      if (typeFilter === "primary") return k.isPrimary;
-      if (typeFilter === "secondary") return !k.isPrimary;
-      return true;
-    });
-
-    // If showing all, organize hierarchically
-    if (typeFilter === "all") {
-      const result: Keyword[] = [];
-      
-      // Get primary keywords sorted by volume (descending)
-      const primaries = filtered
-        .filter((k) => k.isPrimary)
-        .sort((a, b) => b.volume - a.volume);
-      
-      // Get secondary keywords
-      const secondaries = filtered.filter((k) => !k.isPrimary);
-      
-      // For each primary, add it and its children
-      primaries.forEach((primary) => {
-        result.push(primary);
-        
-        // Add secondary keywords for this primary, sorted by volume
-        const children = secondaries
-          .filter((s) => s.parentKeywordId === primary.keywordId)
-          .sort((a, b) => b.volume - a.volume);
-        
-        result.push(...children);
-      });
-      
-      // Add orphaned secondary keywords (no parent) at the end
-      const orphans = secondaries
-        .filter((s) => !s.parentKeywordId)
-        .sort((a, b) => b.volume - a.volume);
-      
-      result.push(...orphans);
-      
-      return result;
-    }
-    
-    // For primary or secondary filter, just sort by volume
-    return filtered.sort((a, b) => b.volume - a.volume);
-  })();
+	// Filter and organize keywords hierarchically
+	const filteredKeywords = keywords.filter((k) => {
+		if (typeFilter === "all") return true;
+		if (typeFilter === "primary") return k.isPrimary;
+		if (typeFilter === "secondary") return !k.isPrimary;
+		return true;
+	});
 
 	// Sort filtered keywords
-	const sortedKeywords = [...filteredKeywords].sort((a, b) => {
-		let aValue: string | number | boolean = "";
-		let bValue: string | number | boolean = "";
+	const sortedKeywords = useMemo(() => {
+		return [...filteredKeywords].sort((a, b) => {
+			let aValue: string | number | boolean = "";
+			let bValue: string | number | boolean = "";
 
-		switch (sortColumn) {
-			case "keyword":
-				aValue = a.keyword.toLowerCase();
-				bValue = b.keyword.toLowerCase();
-				break;
-			case "difficulty":
-				aValue = a.difficulty;
-				bValue = b.difficulty;
-				break;
-			case "volume":
-				aValue = a.volume;
-				bValue = b.volume;
-				break;
-			case "type":
-				aValue = a.isPrimary ? 1 : 0;
-				bValue = b.isPrimary ? 1 : 0;
-				break;
-			case "status":
-				aValue = a.isAnalyzed ? 1 : 0;
-				bValue = b.isAnalyzed ? 1 : 0;
-				break;
-			case "recommendedTitle":
-				aValue = (a.recommendedTitle || "").toLowerCase();
-				bValue = (b.recommendedTitle || "").toLowerCase();
-				break;
-			case "parent":
-				const getParentKeyword = (parentId: string | null) => {
-					if (!parentId) return "";
-					return keywords.find(k => k.keywordId === parentId)?.keyword?.toLowerCase() || "";
-				};
-				aValue = getParentKeyword(a.parentKeywordId);
-				bValue = getParentKeyword(b.parentKeywordId);
-				break;
-			default:
-				return 0;
-		}
+			switch (sortColumn) {
+				case "keyword":
+					aValue = a.keyword.toLowerCase();
+					bValue = b.keyword.toLowerCase();
+					break;
+				case "difficulty":
+					aValue = a.difficulty;
+					bValue = b.difficulty;
+					break;
+				case "volume":
+					aValue = a.volume;
+					bValue = b.volume;
+					break;
+				case "type":
+					aValue = a.isPrimary ? 1 : 0;
+					bValue = b.isPrimary ? 1 : 0;
+					break;
+				case "status":
+					aValue = a.isAnalyzed ? 1 : 0;
+					bValue = b.isAnalyzed ? 1 : 0;
+					break;
+				case "recommendedTitle":
+					aValue = (a.recommendedTitle || "").toLowerCase();
+					bValue = (b.recommendedTitle || "").toLowerCase();
+					break;
+				case "parent":
+					const getParentKeyword = (parentId: string | null) => {
+						if (!parentId) return "";
+						return keywords.find(k => k.keywordId === parentId)?.keyword?.toLowerCase() || "";
+					};
+					aValue = getParentKeyword(a.parentKeywordId);
+					bValue = getParentKeyword(b.parentKeywordId);
+					break;
+				default:
+					return 0;
+			}
 
-		if (aValue < bValue) {
-			return sortDirection === "asc" ? -1 : 1;
-		}
-		if (aValue > bValue) {
-			return sortDirection === "asc" ? 1 : -1;
-		}
-		return 0;
-	});
+			if (aValue < bValue) {
+				return sortDirection === "asc" ? -1 : 1;
+			}
+			if (aValue > bValue) {
+				return sortDirection === "asc" ? 1 : -1;
+			}
+			return 0;
+		});
+	}, [filteredKeywords, keywords, sortColumn, sortDirection]);
+
+	const mainKeywords = useMemo(() => {
+		return sortedKeywords.filter((k) => k.isPrimary || !k.parentKeywordId);
+	}, [sortedKeywords]);
+
+	console.log({ mainKeywords, sortedKeywords });
 
 	// Handle sort column click
 	const handleSortClick = (column: string) => {
@@ -314,7 +287,7 @@ export default function KeywordsPage() {
 
 	// Get secondary keywords for a primary keyword
 	const getSecondaryKeywordsForPrimary = (primaryKeywordId: string) => {
-		return keywords.filter((k) => k.parentKeywordId === primaryKeywordId);
+		return sortedKeywords.filter((k) => k.parentKeywordId === primaryKeywordId);
 	};
 
 	// Handle Generate Article click
@@ -884,7 +857,7 @@ export default function KeywordsPage() {
 										</TableRow>
 									</TableHeader>
 									<TableBody>
-										{filteredKeywords.map((keyword) => {
+										{mainKeywords.map((keyword) => {
 											const isSecondary = !keyword.isPrimary;
 											const hasParent = !!keyword.parentKeywordId;
 
@@ -894,9 +867,9 @@ export default function KeywordsPage() {
 														key={keyword.keywordId}
 														className={`
 																${isSecondary && hasParent ? "bg-muted/30" : ""}
-																${expandedRow === keyword.keywordId ? "bg-muted/50" : ""}
+																${expandedRows.has(keyword.keywordId) ? "bg-muted/50" : ""}
 															`}
-														>
+													>
 														<TableCell className={isSecondary && hasParent ? "pl-12" : ""}>
 															<Checkbox
 																checked={selectedIds.has(keyword.keywordId)}
@@ -907,22 +880,29 @@ export default function KeywordsPage() {
 														</TableCell>
 														<TableCell className={`font-medium ${isSecondary && hasParent ? "pl-2" : ""}`}>
 															<div
-																onClick={() =>
-																	setExpandedRow((prev) =>
-																		prev === keyword.keywordId ? "" : keyword.keywordId
-																	)
-																}
 																className="flex cursor-pointer items-center gap-2"
 															>
-																{/* {keyword.isPrimary && (
-																	<div>
-																		{expandedRow === keyword.keywordId ? (
+																{keyword.isPrimary && (
+																	<div
+																		onClick={() => {
+																			if (!keyword.isPrimary) return;
+																			const newExpandedRows = new Set(expandedRows);
+																			if (expandedRows.has(keyword.keywordId)) {
+																				newExpandedRows.delete(keyword.keywordId);
+																			} else {
+																				newExpandedRows.add(keyword.keywordId);
+																			}
+																			setExpandedRows(newExpandedRows);
+																		}}
+																		className='cursor-pointer'
+																	>
+																		{expandedRows.has(keyword.keywordId) ? (
 																			<ChevronDown className="h-4 w-4" />
 																		) : (
 																			<ChevronRight className="h-4 w-4" />
 																		)}
 																	</div>
-																)} */}
+																)}
 																<div className="flex items-center gap-2">
 																	{isSecondary && hasParent && (
 																		<span className="text-muted-foreground">└─</span>
@@ -1125,9 +1105,9 @@ export default function KeywordsPage() {
 														</TableCell>
 													</TableRow>
 
-													{expandedRow === keyword.keywordId && keyword.isPrimary && (
-														<TableRow>
-															<TableCell colSpan={9} className="bg-muted/30 p-0">
+													{(expandedRows.has(keyword.keywordId) && keyword.isPrimary) && (
+														<TableRow className=''>
+															<TableCell colSpan={9} className="bg-muted/30 p-0 pl-16">
 																<Table>
 																	<TableHeader className="border-b">
 																		<TableRow>
@@ -1135,7 +1115,6 @@ export default function KeywordsPage() {
 																			<TableHead>Type</TableHead>
 																			<TableHead>Difficulty</TableHead>
 																			<TableHead>Volume</TableHead>
-																			<TableHead>Parent</TableHead>
 																			<TableHead>Status</TableHead>
 																		</TableRow>
 																	</TableHeader>
@@ -1166,25 +1145,6 @@ export default function KeywordsPage() {
 																						<span className="text-xs text-muted-foreground ml-1">
 																							/mo
 																						</span>
-																					</TableCell>
-																					<TableCell>
-																						{secondary.isPrimary ? (
-																							<span className="text-muted-foreground text-xs">—</span>
-																						) : secondary.parentKeywordId ? (
-																							<Tooltip>
-																								<TooltipTrigger className="text-left truncate block max-w-32">
-																									<Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-																										<Link2 className="h-3 w-3 mr-1" />
-																										{keywords.find(k => k.keywordId === secondary.parentKeywordId)?.keyword?.substring(0, 15) || "Unknown"}
-																									</Badge>
-																								</TooltipTrigger>
-																								<TooltipContent>
-																									<p>Parent: {keywords.find(k => k.keywordId === secondary.parentKeywordId)?.keyword}</p>
-																								</TooltipContent>
-																							</Tooltip>
-																						) : (
-																							<span className="text-muted-foreground text-xs">Not assigned</span>
-																						)}
 																					</TableCell>
 																					<TableCell>
 																						{secondary.isAnalyzed ? (
