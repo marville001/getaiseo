@@ -39,8 +39,19 @@ const menuItems: MenuItem[] = [
     icon: Users,
   },
   {
+    title: "Admin Users",
+    href: "/admin/admins",
+    icon: Users,
+  },
+  {
     title: "System Settings",
     href: "/admin/settings",
+    icon: Settings,
+    children: []
+  },
+  {
+    title: "Roles & Permissions",
+    href: "/admin/roles",
     icon: Settings,
     children: []
   },
