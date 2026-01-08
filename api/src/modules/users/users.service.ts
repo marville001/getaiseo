@@ -246,9 +246,16 @@ export class UsersService {
 		const skip = (page - 1) * limit;
 		let whereSearch: FindOptionsWhere<User>[] = [];
 
+		const adminRoles = await this.rolesRepository.find({
+			where: { isAdminRole: true }
+		});
+
 		// Add search functionality
 		if (search) {
 			whereSearch = [
+				{
+					roleId: In(adminRoles.map(role => role.roleId)),
+				},
 				{ email: ILike(`%${search}%`) },
 				{ firstName: ILike(`%${search}%`) },
 				{ lastName: ILike(`%${search}%`) },
@@ -257,6 +264,7 @@ export class UsersService {
 
 		const [users, total] = await this.usersRepository.findAndCount({
 			where: search ? whereSearch : {
+				roleId: In(adminRoles.map(role => role.roleId))
 			},
 			skip,
 			take: limit,
