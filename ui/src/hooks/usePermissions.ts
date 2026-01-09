@@ -19,7 +19,7 @@ export const usePermissions = () => {
 		action: string
 	): boolean => {
 		// Super Admin has all permissions
-		if (user?.userRole?.name === 'SUPER_ADMIN' || user?.userRole?.name === 'SUPER_ADMIN') {
+		if (user?.userRole?.name === 'SUPER_ADMIN') {
 			return true;
 		}
 
@@ -34,9 +34,7 @@ export const usePermissions = () => {
 	};
 
 	const hasAllPermissions = (checks: Array<{ resource: string; action: string; }>): boolean => {
-		return checks.every(({ resource, action }) =>
-			hasPermission(resource, action)
-		);
+		return checks.every(({ resource, action }) => hasPermission(resource, action));
 	};
 
 	const isSuperAdmin = user?.userRole?.name === 'SUPER_ADMIN';
