@@ -129,12 +129,12 @@ export class MembersController {
    * @param user - Current authenticated user
    */
   @Post('invite/accept')
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   async acceptInvite(
     @Body() acceptMemberInviteDto: AcceptMemberInviteDto,
     @CurrentUser() user: JwtPayload,
   ) {
-    return this.membersService.acceptInvite(acceptMemberInviteDto.token, user.sub);
+    return this.membersService.acceptInvite(acceptMemberInviteDto.token, );
   }
 
   /**
@@ -155,7 +155,7 @@ export class MembersController {
    * @param inviteId - Invite ID
    */
   @Delete('invite/:inviteId/revoke')
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   async revokeInvite(
     @Param('inviteId') inviteId: string,
   ) {

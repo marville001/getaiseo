@@ -1,5 +1,5 @@
 import { User } from '@/modules/users/entities/user.entity';
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomBytes } from 'crypto';
@@ -36,7 +36,7 @@ export class MembersService {
       }
 
       const frontendUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:3000';
-      const inviteUrl = `${frontendUrl}/accept-invite?token=${token}`;
+      const inviteUrl = `${frontendUrl}/dashboard/website-settings/accept-invite?token=${token}`;
 
       const emailHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -105,6 +105,7 @@ export class MembersService {
 
     // Send invite email
     await this.sendInviteEmail(email, token, invitedBy);
+    //check for error sending emails
 
     return createdInvite;
   }
@@ -150,64 +151,65 @@ export class MembersService {
     return member;
   }
 
-  async acceptInvite(token: string, userId: string): Promise<{ member: Member; message: string }> {
-    const invite = await this.memberInvitesRepository.findByToken(token);
+  // In members.service.ts
+async acceptInvite(token: string): Promise<{ member: Member; message: string }> {
+  const invite = await this.memberInvitesRepository.findByToken(token);
 
-    if (!invite) {
-      throw new NotFoundException('Invite not found or expired');
-    }
-
-    if (invite.status !== InviteStatus.PENDING) {
-      throw new BadRequestException(`Invite has already been ${invite.status.toLowerCase()}`);
-    }
-
-    if (new Date() > invite.expiresAt) {
-      invite.status = InviteStatus.EXPIRED;
-      await this.memberInvitesRepository.save(invite);
-      throw new BadRequestException('Invite has expired');
-    }
-
-    // Check if user exists with the invite email
-    const user = await this.usersRepository.findOne({
-      where: { userId },
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    if (user.email !== invite.email) {
-      throw new ForbiddenException('The invitation is for a different email address');
-    }
-
-    // Check if user is already a member
-    const existingMember = await this.membersRepository.findByUserAndWebsite(
-      userId,
-      invite.websiteId,
-    );
-
-    if (existingMember) {
-      throw new ConflictException('You are already a member of this website');
-    }
-
-    const member = new Member({
-      userId,
-      websiteId: invite.websiteId,
-      isActive: true,
-      joinedAt: new Date(),
-    });
-
-    const createdMember = await this.membersRepository.create(member);
-
-    invite.status = InviteStatus.ACCEPTED;
-    invite.acceptedAt = new Date();
-    await this.memberInvitesRepository.save(invite);
-
-    return {
-      member: createdMember,
-      message: 'Successfully accepted the invitation',
-    };
+  if (!invite) {
+    throw new NotFoundException('Invite not found or expired');
   }
+
+  if (invite.status !== InviteStatus.PENDING) {
+    throw new BadRequestException(`Invite has already been ${invite.status.toLowerCase()}`);
+  }
+
+  if (new Date() > invite.expiresAt) {
+    invite.status = InviteStatus.EXPIRED;
+    await this.memberInvitesRepository.save(invite);
+    throw new BadRequestException('Invite has expired');
+  }
+
+  // Find user by email from the invite
+  const user = await this.usersRepository.findOne({
+    where: { email: invite.email },
+  });
+
+  if (!user) {
+    // If user doesn't exist, you could:
+    // 1. Create a new user account
+    // 2. Ask user to sign up first
+    // 3. Create a placeholder user
+    throw new NotFoundException('No account found with this email. Please sign up first.');
+  }
+
+  // Check if user is already a member
+  const existingMember = await this.membersRepository.findByUserAndWebsite(
+    user.userId,
+    invite.websiteId,
+  );
+
+  if (existingMember) {
+    throw new ConflictException('You are already a member of this website');
+  }
+
+  const member = new Member({
+    userId: user.userId,
+    websiteId: invite.websiteId,
+    isActive: true,
+    joinedAt: new Date(),
+  });
+
+  const createdMember = await this.membersRepository.create(member);
+
+  invite.status = InviteStatus.ACCEPTED;
+  invite.acceptedAt = new Date();
+  await this.memberInvitesRepository.save(invite);
+
+  return {
+    member: createdMember,
+    message: 'Successfully accepted the invitation',
+  };
+}
 
 
   async rejectInvite(token: string, rejectionReason?: string): Promise<{ message: string }> {
