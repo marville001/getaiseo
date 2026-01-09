@@ -1,40 +1,41 @@
 "use client";
 
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
 } from "@/components/ui/select";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
 } from "@/components/ui/table";
 import { MemberInvite, WebsiteMember, membersApi } from "@/lib/api/members.api";
+import { format } from "date-fns";
 import { Loader2, MoreHorizontal, Trash2 } from "lucide-react";
 import { useState } from "react";
 
@@ -114,19 +115,22 @@ export default function MembersList({
 									{pendingInvites.map((invite) => (
 										<TableRow key={invite.inviteId}>
 											<TableCell className="font-medium">
-												{invite.invitedEmail}
+												{invite.email}
 											</TableCell>
 											<TableCell>
 												<Badge variant="outline">Pending</Badge>
 											</TableCell>
 											<TableCell>
-												{invite.invitedBy?.firstName &&
-													invite.invitedBy?.lastName
-													? `${invite.invitedBy.firstName} ${invite.invitedBy.lastName}`
-													: invite.invitedBy?.email || "-"}
+												{invite.inviter
+												? `${invite.inviter.firstName || ''} ${invite.inviter.lastName || ''}`.trim() || invite.inviter.email
+												: invite.invitedBy || '-'
+												}
 											</TableCell>
 											<TableCell>
-												{new Date(invite.expiresAt).toLocaleDateString()}
+												{format(
+													new Date(invite.expiresAt || ""),
+													"MMM dd, yyyy"
+												)}
 											</TableCell>
 										</TableRow>
 									))}
@@ -252,7 +256,7 @@ export default function MembersList({
 									{acceptedInvites.map((invite) => (
 										<TableRow key={invite.inviteId}>
 											<TableCell className="font-medium">
-												{invite.invitedEmail}
+												{invite.email}
 											</TableCell>
 											<TableCell>
 												<Badge variant="secondary">Accepted</Badge>

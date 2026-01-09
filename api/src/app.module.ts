@@ -15,6 +15,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { KeywordsModule } from './modules/keywords/keywords.module';
 import { LoggingModule } from './modules/logging/logging.module';
 import { MailModule } from './modules/mail/mail.module';
+import { MembersModule } from "./modules/members/members.module";
 import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { OpenAiModule } from './modules/openai/openai.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
@@ -73,7 +74,7 @@ import { UsersModule } from './modules/users/users.module';
 			}),
 			inject: [ConfigService],
 		}),
-
+		MembersModule,
 		UsersModule,
 		PermissionsModule,
 		DatabaseModule,

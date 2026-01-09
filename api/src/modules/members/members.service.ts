@@ -80,7 +80,7 @@ export class MembersService {
       websiteId,
     );
 
-    if (existingInvite && existingInvite.status === InviteStatus.PENDING) {
+    if (existingInvite && existingInvite.status === InviteStatus.PENDING) {``
       throw new ConflictException('This email already has a pending invitation');
     }
 

@@ -52,7 +52,6 @@ export class MemberInvite extends AbstractEntity<MemberInvite> {
   @Column({ nullable: true })
   rejectionReason?: string;
 
-  // Relations
   @ManyToOne(() => Member, (member) => member.invites, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'member_id' })
   member?: Member;

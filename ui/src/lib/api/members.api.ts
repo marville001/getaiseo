@@ -82,9 +82,6 @@ export interface UpdateMemberDTO {
 	role?: "owner" | "editor" | "viewer";
 }
 
-/**
- * Response DTO for member invites with status grouping
- */
 export interface GetInvitesResponse {
 	pending: MemberInvite[];
 	accepted: MemberInvite[];
@@ -94,9 +91,6 @@ export interface GetInvitesResponse {
 }
 
 export const membersApi = {
-	/**
-	 * Get all members for a specific website
-	 */
 	getWebsiteMembers: async (
 		websiteId: string,
 		page: number = 1,
@@ -109,9 +103,7 @@ export const membersApi = {
 		return response.data?.data?.data || [];
 	},
 
-	/**
-	 * Get all invites for a specific website grouped by status
-	 */
+
 	getWebsiteInvites: async (
 		websiteId: string,
 		page: number = 1,
@@ -121,7 +113,6 @@ export const membersApi = {
 			params: { page, limit },
 		});
 
-		// Backend returns: { data: { data: [...], pagination: {...} } }
 		const invites = response.data?.data?.data || [];
 
 		// Group invites by status
@@ -134,17 +125,12 @@ export const membersApi = {
 		};
 	},
 
-	/**
-	 * Get details of a specific invite by token (public, no auth required)
-	 */
+
 	getInviteByToken: async (token: string): Promise<MemberInvite> => {
 		const response = await api.get(`/members/invite/${token}`);
 		return response.data?.data;
 	},
 
-	/**
-	 * Invite a member to a single website
-	 */
 	inviteToWebsite: async (
 		websiteId: string,
 		email: string,
@@ -158,9 +144,6 @@ export const membersApi = {
 		return response.data?.data;
 	},
 
-	/**
-	 * Bulk invite member to multiple websites at once
-	 */
 	inviteMember: async (
 		email: string,
 		websiteIds: string[],
@@ -177,32 +160,19 @@ export const membersApi = {
 		return response.data?.data;
 	},
 
-	/**
-	 * Accept an invitation by token
-	 */
 	acceptInvite: async (token: string): Promise<MemberInvite> => {
 		const response = await api.post('/members/invite/accept', { token });
 		return response.data?.data;
 	},
 
-	/**
-	 * Reject an invitation by token
-	 */
 	rejectInvite: async (token: string, reason?: string): Promise<void> => {
 		await api.post(`/members/invite/${token}/reject`, { reason });
 	},
-
-	/**
-	 * Get a specific member's details
-	 */
 	getMember: async (memberId: string): Promise<WebsiteMember> => {
 		const response = await api.get(`/members/${memberId}`);
 		return response.data?.data;
 	},
 
-	/**
-	 * Update a member
-	 */
 	updateMember: async (
 		memberId: string,
 		data: UpdateMemberDTO
@@ -211,9 +181,6 @@ export const membersApi = {
 		return response.data?.data;
 	},
 
-	/**
-	 * Update member role
-	 */
 	updateMemberRole: async (
 		memberId: string,
 		role: "owner" | "editor" | "viewer"
@@ -221,33 +188,20 @@ export const membersApi = {
 		const response = await api.patch(`/members/${memberId}`, { role });
 		return response.data?.data;
 	},
-
-	/**
-	 * Remove a member from a website
-	 */
 	removeMember: async (memberId: string): Promise<void> => {
 		await api.delete(`/members/${memberId}`);
 	},
 
-	/**
-	 * Revoke a pending invitation
-	 */
 	revokeInvite: async (inviteId: string): Promise<MemberInvite> => {
 		const response = await api.delete(`/members/invite/${inviteId}/revoke`);
 		return response.data?.data;
 	},
 
-	/**
-	 * Resend an invitation by ID
-	 */
 	resendInvite: async (inviteId: string): Promise<MemberInvite> => {
 		const response = await api.post(`/members/invite/${inviteId}/resend`);
 		return response.data?.data;
 	},
 
-	/**
-	 * Get member count for a website
-	 */
 	getMemberCount: async (websiteId: string): Promise<number> => {
 		const response = await api.get(`/members/count/website/${websiteId}`);
 		return response.data?.data?.count || 0;

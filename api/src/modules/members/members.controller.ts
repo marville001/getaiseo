@@ -62,7 +62,7 @@ export class MembersController {
    * @param createMemberInviteDto - Invite details
    * @param user - Current authenticated user
    */
-  @Post('invite/website/:websiteId')
+  @Post('invite/websites/:websiteId')
   @UseGuards(JwtAuthGuard)
   async createInvite(
     @Param('websiteId') websiteId: string,
