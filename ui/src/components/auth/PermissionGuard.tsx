@@ -7,31 +7,25 @@ import { ReactNode, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 
-interface PermissionGateProps {
+interface PermissionGuardProps {
 	children: ReactNode;
 	resource: string;
 	action: string;
 	fallback?: ReactNode;
-	/** When true, shows AccessDeniedPage instead of fallback/null. Use for page-level protection. */
-	showAccessDenied?: boolean;
-	/** Redirect to this path when access is denied */
 	redirectTo?: string;
 }
 
 /**
- * PermissionGate - Unified permission protection component
- * 
- * For UI elements (buttons, links): Use without showAccessDenied
- * For page-level protection: Use with showAccessDenied={true}
+ * PermissionGuard - Route-level permission protection
+ * Use this to wrap entire pages/routes that require specific permissions
  */
-export function PermissionGate({
+export function PermissionGuard({
 	children,
 	resource,
 	action,
-	fallback = null,
-	showAccessDenied = false,
+	fallback,
 	redirectTo,
-}: PermissionGateProps) {
+}: PermissionGuardProps) {
 	const { hasPermission, isSuperAdmin } = usePermissions();
 	const router = useRouter();
 
@@ -44,39 +38,41 @@ export function PermissionGate({
 	}, [hasAccess, redirectTo, router]);
 
 	if (!hasAccess) {
-		if (showAccessDenied) {
-			return <AccessDeniedPage />;
+		if (fallback) {
+			return <>{fallback}</>;
 		}
-		return <>{fallback}</>;
+
+		return <AccessDeniedPage />;
 	}
 
 	return <>{children}</>;
 }
 
-// Multi-permission gate
-interface MultiPermissionGateProps {
+interface MultiPermissionGuardProps {
 	children: ReactNode;
-	permissions: Array<{ resource: string; action: string }>;
+	permissions: Array<{ resource: string; action: string; }>;
 	requireAll?: boolean;
 	fallback?: ReactNode;
-	showAccessDenied?: boolean;
 	redirectTo?: string;
 }
 
-export function MultiPermissionGate({
+/**
+ * MultiPermissionGuard - Route-level protection requiring multiple permissions
+ * Set requireAll=true to require all permissions, false (default) for any permission
+ */
+export function MultiPermissionGuard({
 	children,
 	permissions,
 	requireAll = false,
-	fallback = null,
-	showAccessDenied = false,
+	fallback,
 	redirectTo,
-}: MultiPermissionGateProps) {
+}: MultiPermissionGuardProps) {
 	const { hasAllPermissions, hasAnyPermission, isSuperAdmin } = usePermissions();
 	const router = useRouter();
 
-	const hasAccess =
-		isSuperAdmin ||
-		(requireAll ? hasAllPermissions(permissions) : hasAnyPermission(permissions));
+	const hasAccess = isSuperAdmin || (requireAll
+		? hasAllPermissions(permissions)
+		: hasAnyPermission(permissions));
 
 	useEffect(() => {
 		if (!hasAccess && redirectTo) {
@@ -85,10 +81,11 @@ export function MultiPermissionGate({
 	}, [hasAccess, redirectTo, router]);
 
 	if (!hasAccess) {
-		if (showAccessDenied) {
-			return <AccessDeniedPage />;
+		if (fallback) {
+			return <>{fallback}</>;
 		}
-		return <>{fallback}</>;
+
+		return <AccessDeniedPage />;
 	}
 
 	return <>{children}</>;
@@ -121,9 +118,8 @@ function AccessDeniedPage() {
 									Insufficient Permissions
 								</p>
 								<p className="text-sm text-gray-600">
-									Your current role doesn&apos;t include the required permissions
-									to view this content. Please contact your administrator if you
-									believe this is an error.
+									Your current role doesn&apos;t include the required permissions to view this content.
+									Please contact your administrator if you believe this is an error.
 								</p>
 							</div>
 						</div>
@@ -133,10 +129,12 @@ function AccessDeniedPage() {
 						<div className="flex items-start gap-3">
 							<AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
 							<div className="space-y-1">
-								<p className="text-sm font-medium text-amber-800">Need Access?</p>
+								<p className="text-sm font-medium text-amber-800">
+									Need Access?
+								</p>
 								<p className="text-sm text-amber-700">
-									If you need access to this feature, please reach out to a Super
-									Admin to have your role updated with the necessary permissions.
+									If you need access to this feature, please reach out to a Super Admin 
+									to have your role updated with the necessary permissions.
 								</p>
 							</div>
 						</div>
@@ -150,7 +148,10 @@ function AccessDeniedPage() {
 						>
 							Go Back
 						</Button>
-						<Button className="flex-1" onClick={() => router.push('/admin')}>
+						<Button
+							className="flex-1"
+							onClick={() => router.push('/admin')}
+						>
 							Go to Dashboard
 						</Button>
 					</div>

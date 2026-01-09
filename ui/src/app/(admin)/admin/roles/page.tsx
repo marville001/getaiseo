@@ -1,5 +1,6 @@
 'use client';
 
+import { PermissionGate } from '@/components/auth/PermissionGate';
 import { CreateRoleDialog } from '@/components/modals/CreateRoleDialog';
 import { EditPermissionsDialog } from '@/components/modals/EditPermissionsDialog';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +13,7 @@ import {
 	CardTitle,
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PermissionAction, PermissionResource } from '@/constants/permissions';
 import { permissionsApi } from '@/lib/api/permissions';
 import { Permission, Role } from '@/types/permissions';
 import { Plus, Settings, Shield, ShieldCheck, Users } from 'lucide-react';
@@ -85,21 +87,31 @@ export default function RolesPage() {
 	}
 
 	return (
-		<div className="container mx-auto py-8 space-y-6">
-			<div className="flex items-center justify-between">
-				<div className="space-y-2">
-					<h1 className="text-3xl font-bold tracking-tight">
-						Roles & Permissions
-					</h1>
-					<p className="text-muted-foreground">
-						Manage roles and configure permissions for admin users
-					</p>
+		<PermissionGate
+			resource={PermissionResource.ROLES}
+			action={PermissionAction.READ}
+			showAccessDenied
+		>
+			<div className="container mx-auto py-8 space-y-6">
+				<div className="flex items-center justify-between">
+					<div className="space-y-2">
+						<h1 className="text-3xl font-bold tracking-tight">
+							Roles & Permissions
+						</h1>
+						<p className="text-muted-foreground">
+							Manage roles and configure permissions for admin users
+						</p>
+					</div>
+					<PermissionGate
+						resource={PermissionResource.ROLES}
+						action={PermissionAction.CREATE}
+					>
+						<Button onClick={() => setIsCreateDialogOpen(true)}>
+							<Plus className="mr-2 h-4 w-4" />
+							Create Role
+						</Button>
+					</PermissionGate>
 				</div>
-				<Button onClick={() => setIsCreateDialogOpen(true)}>
-					<Plus className="mr-2 h-4 w-4" />
-					Create Role
-				</Button>
-			</div>
 
 			<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 				{roles.map((role) => {
@@ -164,14 +176,19 @@ export default function RolesPage() {
 
 								{
 									!['SUPER_ADMIN', 'USER'].includes(role.name) &&
-									<Button
-										onClick={() => handleEditRole(role)}
-										variant="outline"
-										className="w-full"
+									<PermissionGate
+										resource={PermissionResource.ROLES}
+										action={PermissionAction.UPDATE}
 									>
-										<Settings className="mr-2 h-4 w-4" />
-										Manage Permissions
-									</Button>
+										<Button
+											onClick={() => handleEditRole(role)}
+											variant="outline"
+											className="w-full"
+										>
+											<Settings className="mr-2 h-4 w-4" />
+											Manage Permissions
+										</Button>
+									</PermissionGate>
 								}
 							</CardContent>
 						</Card>
@@ -194,5 +211,6 @@ export default function RolesPage() {
 				onSuccess={loadData}
 			/>
 		</div>
+		</PermissionGate>
 	);
 }

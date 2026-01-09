@@ -1,7 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { PermissionAction, PermissionActionType, PermissionResource, PermissionResourceType } from "@/constants/permissions";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useUserStore } from "@/stores/user.store";
 import {
   Brain,
@@ -25,6 +27,10 @@ interface MenuItem {
   description?: string;
   badge?: string;
   children?: MenuItem[];
+  permission?: {
+    resource: PermissionResourceType;
+    action: PermissionActionType;
+  };
 }
 
 const menuItems: MenuItem[] = [
@@ -32,34 +38,55 @@ const menuItems: MenuItem[] = [
     title: "Dashboard",
     href: "/admin",
     icon: LayoutDashboard,
+    // Dashboard is accessible to all admins, no specific permission needed
   },
   {
     title: "Users",
     href: "/admin/users",
     icon: Users,
+    permission: {
+      resource: PermissionResource.USERS,
+      action: PermissionAction.READ,
+    },
   },
   {
     title: "Admin Users",
     href: "/admin/admins",
     icon: Users,
+    permission: {
+      resource: PermissionResource.ADMINS,
+      action: PermissionAction.READ,
+    },
   },
   {
     title: "System Settings",
     href: "/admin/settings",
     icon: Settings,
-    children: []
+    children: [],
+    permission: {
+      resource: PermissionResource.SETTINGS,
+      action: PermissionAction.READ,
+    },
   },
   {
     title: "Roles & Permissions",
     href: "/admin/roles",
     icon: Settings,
-    children: []
+    children: [],
+    permission: {
+      resource: PermissionResource.ROLES,
+      action: PermissionAction.READ,
+    },
   },
   {
     title: "Activity logs",
     href: "/admin/activity-logs",
     icon: Shield,
     children: [],
+    permission: {
+      resource: PermissionResource.AUDIT_LOGS,
+      action: PermissionAction.READ,
+    },
   },
 ];
 
@@ -69,6 +96,7 @@ export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useAuth();
+  const { hasPermission, isSuperAdmin } = usePermissions();
 
   const user = useUserStore((state) => state.user);
 
@@ -85,6 +113,20 @@ export default function AdminSidebar() {
   };
 
   const isExpanded = (title: string) => expandedItems.includes(title);
+
+  // Check if user has permission for a menu item
+  const hasMenuPermission = (item: MenuItem): boolean => {
+    // Super Admin has access to everything
+    if (isSuperAdmin) return true;
+    
+    // Items without permission requirement are accessible to all admins
+    if (!item.permission) return true;
+    
+    return hasPermission(item.permission.resource, item.permission.action);
+  };
+
+  // Filter menu items based on permissions
+  const accessibleMenuItems = menuItems.filter(hasMenuPermission);
 
   return (
     <>
@@ -120,7 +162,7 @@ export default function AdminSidebar() {
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-            {menuItems.map((item) => (
+            {accessibleMenuItems.map((item) => (
               <div key={item.title}>
                 {item.children && item.children.length > 0 ? (
                   <div>

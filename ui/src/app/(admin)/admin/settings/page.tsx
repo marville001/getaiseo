@@ -1,15 +1,17 @@
 "use client";
 
+import { PermissionGate } from "@/components/auth/PermissionGate";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PermissionAction, PermissionResource } from "@/constants/permissions";
 import {
-  Bell,
-  Bot,
-  Database,
-  FileText,
-  Settings,
-  Upload,
-  Users
+    Bell,
+    Bot,
+    Database,
+    FileText,
+    Settings,
+    Upload,
+    Users
 } from "lucide-react";
 import { useState } from "react";
 import AiModelsTab from "./components/ai-models-tab";
@@ -62,20 +64,25 @@ export default function AdminSettingsPage() {
   ];
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-          <p className="text-gray-600 mt-2">
-            Manage your platform configuration and preferences
-          </p>
+    <PermissionGate
+      resource={PermissionResource.SETTINGS}
+      action={PermissionAction.READ}
+      showAccessDenied
+    >
+      <div className="container mx-auto py-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+            <p className="text-gray-600 mt-2">
+              Manage your platform configuration and preferences
+            </p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Database className="h-5 w-5 text-gray-400" />
+            <span className="text-sm text-gray-500">Last updated: Just now</span>
+          </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <Database className="h-5 w-5 text-gray-400" />
-          <span className="text-sm text-gray-500">Last updated: Just now</span>
-        </div>
-      </div>
 
       {/* Settings Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -163,5 +170,6 @@ export default function AdminSettingsPage() {
         </div>
       </Tabs>
     </div>
+    </PermissionGate>
   );
 }

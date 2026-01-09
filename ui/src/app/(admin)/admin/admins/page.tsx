@@ -1,5 +1,6 @@
 "use client";
 
+import { PermissionGate } from "@/components/auth/PermissionGate";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { PermissionAction, PermissionResource } from "@/constants/permissions";
 import { useGetAdmins, useUpdateUserRole, useUpdateUserStatus } from "@/hooks/useUsers";
 import { permissionsApi } from '@/lib/api/permissions';
 import { Role } from '@/types/permissions';
@@ -150,27 +152,37 @@ export default function AdminManagementPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-start">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Link href="/dashboard/admin/users">
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-            </Link>
-            <h1 className="text-3xl font-bold tracking-tight">Admin Users</h1>
+    <PermissionGate
+      resource={PermissionResource.ADMINS}
+      action={PermissionAction.READ}
+      showAccessDenied
+    >
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-start">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Link href="/dashboard/admin/users">
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+              </Link>
+              <h1 className="text-3xl font-bold tracking-tight">Admin Users</h1>
+            </div>
+            <p className="text-muted-foreground">
+              Manage admin and super admin users
+            </p>
           </div>
-          <p className="text-muted-foreground">
-            Manage admin and super admin users
-          </p>
+          <PermissionGate
+            resource={PermissionResource.ADMINS}
+            action={PermissionAction.CREATE}
+          >
+            <Button onClick={() => setIsAddDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Admin
+            </Button>
+          </PermissionGate>
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Admin
-        </Button>
-      </div>
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-3">
@@ -295,25 +307,35 @@ export default function AdminManagementPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setRoleDialog({ isOpen: true, user: admin });
-                                setSelectedRole(admin.userRole?.name || "");
-                              }}
+                            <PermissionGate
+                              resource={PermissionResource.ADMINS}
+                              action={PermissionAction.UPDATE}
                             >
-                              <UserCog className="h-4 w-4 mr-2" />
-                              Change Role
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="text-red-600"
-                              onClick={() => {
-                                setDeactivateDialog({ isOpen: true, user: admin });
-                              }}
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setRoleDialog({ isOpen: true, user: admin });
+                                  setSelectedRole(admin.userRole?.name || "");
+                                }}
+                              >
+                                <UserCog className="h-4 w-4 mr-2" />
+                                Change Role
+                              </DropdownMenuItem>
+                            </PermissionGate>
+                            <PermissionGate
+                              resource={PermissionResource.ADMINS}
+                              action={PermissionAction.SUSPEND}
                             >
-                              <UserX className="h-4 w-4 mr-2" />
-                              Deactivate User
-                            </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => {
+                                  setDeactivateDialog({ isOpen: true, user: admin });
+                                }}
+                              >
+                                <UserX className="h-4 w-4 mr-2" />
+                                Deactivate User
+                              </DropdownMenuItem>
+                            </PermissionGate>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -492,5 +514,6 @@ export default function AdminManagementPage() {
         </DialogContent>
       </Dialog>
     </div>
+    </PermissionGate>
   );
 }
