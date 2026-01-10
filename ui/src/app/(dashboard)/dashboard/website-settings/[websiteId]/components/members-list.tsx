@@ -35,7 +35,8 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { MemberInvite, WebsiteMember, membersApi } from "@/lib/api/members.api";
+import { membersApi } from "@/lib/api/members.api";
+import { MemberInvite, WebsiteMember } from "@/types/members";
 import { format } from "date-fns";
 import {
 	Ban,

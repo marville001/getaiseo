@@ -3,8 +3,9 @@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MemberInvite, membersApi, WebsiteMember } from "@/lib/api/members.api";
+import { membersApi, } from "@/lib/api/members.api";
 import { onboardingApi, UserWebsite } from "@/lib/api/onboarding.api";
+import { MemberInvite, WebsiteMember } from "@/types/members";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";

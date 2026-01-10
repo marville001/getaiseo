@@ -110,7 +110,6 @@ export default function InviteMembersForm({
 		}
 	};
 
-	// Handle email blur
 	const handleEmailBlur = () => {
 		setTouched(prev => ({ ...prev, email: true }));
 		setErrors(prev => ({
@@ -119,7 +118,6 @@ export default function InviteMembersForm({
 		}));
 	};
 
-	// Handle websites change with real-time validation
 	const handleWebsitesChange = (value: string[]) => {
 		setSelectedWebsites(value);
 		setServerError(null);
@@ -132,7 +130,6 @@ export default function InviteMembersForm({
 		}
 	};
 
-	// Handle websites blur
 	const handleWebsitesBlur = () => {
 		setTouched(prev => ({ ...prev, websites: true }));
 		setErrors(prev => ({
@@ -144,17 +141,14 @@ export default function InviteMembersForm({
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 
-		// Mark all fields as touched
 		setTouched({
 			email: true,
 			websites: true,
 		});
 
-		// Clear previous errors
 		setServerError(null);
 		setSuccess(false);
 
-		// Validate form
 		if (!validateForm()) {
 			return;
 		}
@@ -163,7 +157,6 @@ export default function InviteMembersForm({
 			setLoading(true);
 			await membersApi.inviteMember(email.trim(), selectedWebsites);
 
-			// Success - reset form
 			setSuccess(true);
 			setEmail("");
 			setSelectedWebsites([]);
@@ -173,7 +166,6 @@ export default function InviteMembersForm({
 				websites: false,
 			});
 
-			// Clear success message after 5 seconds
 			setTimeout(() => setSuccess(false), 5000);
 
 			onSuccess?.();
@@ -198,7 +190,6 @@ export default function InviteMembersForm({
 			</CardHeader>
 			<CardContent>
 				<div className="space-y-4">
-					{/* Email Field */}
 					<div className="space-y-2">
 						<label htmlFor="email" className="text-sm font-medium">
 							Email Address <span className="text-red-500">*</span>
@@ -222,7 +213,6 @@ export default function InviteMembersForm({
 						)}
 					</div>
 
-					{/* Websites Field */}
 					<div className="space-y-2">
 						<label className="text-sm font-medium">
 							Select Websites <span className="text-red-500">*</span>
@@ -251,7 +241,6 @@ export default function InviteMembersForm({
 						</Alert>
 					)}
 
-					{/* Success Message */}
 					{success && (
 						<Alert className="border-green-500 bg-green-50">
 							<CheckCircle className="h-4 w-4 text-green-600" />
@@ -261,7 +250,6 @@ export default function InviteMembersForm({
 						</Alert>
 					)}
 
-					{/* Submit Button */}
 					<Button
 						type="button"
 						onClick={handleSubmit}
