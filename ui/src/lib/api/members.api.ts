@@ -90,6 +90,12 @@ export interface GetInvitesResponse {
 	revoked?: MemberInvite[];
 }
 
+export interface AcceptInviteResponse {
+  member: WebsiteMember;
+  message: string;
+  isNewUser?: boolean;
+}
+
 export const membersApi = {
 	getWebsiteMembers: async (
 		websiteId: string,
@@ -160,10 +166,10 @@ export const membersApi = {
 		return response.data?.data;
 	},
 
-	acceptInvite: async (token: string): Promise<MemberInvite> => {
-		const response = await api.post('/members/invite/accept', { token });
-		return response.data?.data;
-	},
+	acceptInvite: async (token: string): Promise<AcceptInviteResponse> => {
+    const response = await api.post('/members/invite/accept', { token });
+    return response.data?.data;
+  },
 
 	rejectInvite: async (token: string, reason?: string): Promise<void> => {
 		await api.post(`/members/invite/${token}/reject`, { reason });
