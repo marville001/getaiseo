@@ -18,12 +18,12 @@ export class InitialUsersSeed {
         const initialUsers: Partial<User>[] = [
             {
                 firstName: "Super",
-                lastName: "Maina",
-                email: "mainrobert04@gmail.com",
+                lastName: "Admin",
+                email: "jamesnjungem@protonmail.com",
                 emailVerified: true,
-                password: "Maina@254???",
+                password: "jamesnjungem@protonmail.com!#",
                 status: UserStatus.ACTIVE,
-                phone: "0700207054",
+                phone: "0712345678",
                 roleId: roles.find((r) => r.name === UserRole.SUPER_ADMIN)?.roleId,
                 phoneVerified: true,
             },

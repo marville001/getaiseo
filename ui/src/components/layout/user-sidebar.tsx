@@ -4,16 +4,17 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserStore } from "@/stores/user.store";
 import {
-    Brain,
-    ChevronDown,
-    FileText,
-    Key,
-    LayoutDashboard,
-    Link2,
-    LogOut,
-    Menu,
-    User,
-    X
+  Brain,
+  ChevronDown,
+  FileText,
+  Key,
+  LayoutDashboard,
+  Link2,
+  LogOut,
+  Menu,
+  Settings,
+  User,
+  X
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -53,6 +54,12 @@ const menuItems: MenuItem[] = [
     title: "Profile",
     href: "/dashboard/profile",
     icon: User,
+    children: []
+  },
+  {
+    title: "Website Settings",
+    href: "/dashboard/website-settings",
+    icon: Settings,
     children: []
   },
 ];

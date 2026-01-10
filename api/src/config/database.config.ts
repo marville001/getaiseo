@@ -1,6 +1,8 @@
 import { Article } from '@/modules/articles/entities/article.entity';
 import { AuditLog } from '@/modules/audit/entities/audit-log.entity';
 import { Keyword } from '@/modules/keywords/entities/keyword.entity';
+import { MemberInvite } from "@/modules/members/entities/member-invite.entity";
+import { Member } from "@/modules/members/entities/member.entity";
 import { UserWebsite } from '@/modules/onboarding/entities/user-website.entity';
 import { WebsitePage } from '@/modules/onboarding/entities/website-page.entity';
 import { Permission } from '@/modules/permissions/entities/permission.entity';
@@ -26,7 +28,9 @@ export const entities = [
   UserWebsite,
   WebsitePage,
   Keyword,
-  Article
+  Article,
+  MemberInvite,
+  Member
 ];
 
 export default new DataSource({
