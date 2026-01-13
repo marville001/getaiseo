@@ -130,4 +130,14 @@ export class OnboardingRepository extends AbstractRepository<UserWebsite> {
 		);
 		return this.websitePageRepository.findOne({ where: { pageId } });
 	}
+
+	// Soft delete a website
+	async softDeleteWebsite(websiteId: string, deletedBy: string): Promise<UserWebsite | null> {
+		await this.userWebsiteRepository.update(
+			{ websiteId },
+			{ deletedAt: new Date(), deletedBy },
+		);
+		return this.userWebsiteRepository.findOne({ where: { websiteId } });
+	}
+
 }

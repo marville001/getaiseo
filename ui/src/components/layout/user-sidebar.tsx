@@ -4,20 +4,22 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserStore } from "@/stores/user.store";
 import {
-    Brain,
-    ChevronDown,
-    FileText,
-    Key,
-    LayoutDashboard,
-    Link2,
-    LogOut,
-    Menu,
-    User,
-    X
+  Brain,
+  ChevronDown,
+  FileText,
+  Key,
+  LayoutDashboard,
+  Link2,
+  LogOut,
+  Menu,
+  Settings,
+  User,
+  X
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import { WebsiteDropdown } from "../WebsiteDropdown";
 
 interface MenuItem {
   title: string;
@@ -50,9 +52,20 @@ const menuItems: MenuItem[] = [
     icon: Link2,
   },
   {
+    title: "Websites",
+    href: "/dashboard/websites",
+    icon: Link2,
+  },
+  {
     title: "Profile",
     href: "/dashboard/profile",
     icon: User,
+    children: []
+  },
+  {
+    title: "Website Settings",
+    href: "/dashboard/website-settings",
+    icon: Settings,
     children: []
   },
 ];
@@ -106,14 +119,16 @@ export default function UserSidebar() {
       `}>
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center px-6 py-4 border-b border-gray-200">
-            <div className="bg-linear-to-r from-purple-600 to-blue-600 p-2 rounded-lg">
-              <Brain className="h-6 w-6 text-white" />
+            <div className=" flex items-center border-b border-gray-200 justify-between w-full gap-2">
+              <div className="flex items-center px-3 py-3 ">
+                <div className="bg-linear-to-r from-purple-600 to-blue-600 p-2 rounded-lg">
+                  <Brain className="h-6 w-6 text-white" />
+                </div>
+              </div>
+
+              <WebsiteDropdown />
+
             </div>
-            <div className="ml-3">
-              <h1 className="text-lg font-bold text-gray-900">GetAISEO</h1>
-            </div>
-          </div>
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
@@ -212,7 +227,6 @@ export default function UserSidebar() {
             </div >
           </div >
 
-          {/* Mobile Overlay */};
           {
             isMobileMenuOpen && (
               <div

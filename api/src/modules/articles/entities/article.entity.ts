@@ -1,5 +1,6 @@
 import { AbstractEntity } from '@/database/abstract.entity';
 import { Keyword } from '@/modules/keywords/entities/keyword.entity';
+import { UserWebsite } from '@/modules/onboarding/entities/user-website.entity';
 import { AiModelConfiguration } from '@/modules/settings/entities/ai-model-configuration.entity';
 import { User } from '@/modules/users/entities/user.entity';
 import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
@@ -19,6 +20,9 @@ export class Article extends AbstractEntity<Article> {
 
 	@Column({ name: 'user_id' })
 	userId: string;
+
+	@Column({ name: 'website_id', nullable: true})
+	websiteId: string | null;
 
 	@Column()
 	title: string;
@@ -68,6 +72,10 @@ export class Article extends AbstractEntity<Article> {
 	@ManyToOne(() => User, { onDelete: 'CASCADE' })
 	@JoinColumn({ name: 'user_id' })
 	user: User;
+
+	@ManyToOne(() => UserWebsite, { onDelete: 'CASCADE' })
+	@JoinColumn({ name: 'website_id' })
+	website: UserWebsite;
 
 	@ManyToOne(() => Keyword, { onDelete: 'SET NULL', nullable: true })
 	@JoinColumn({ name: 'primary_keyword_id' })

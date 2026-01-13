@@ -19,6 +19,7 @@ export interface User {
 	phoneVerified: boolean;
 	emailVerified: boolean;
 	emailVerificationToken?: string | null;
+	lastOpenedWebsiteId?: string | null;
 	emailVerificationExpires?: string | null;
 	resetPasswordToken?: string | null;
 	resetPasswordExpires?: string | null;

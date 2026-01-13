@@ -1,5 +1,6 @@
 import { UserStatus } from '@/common/enums/user-status.enum';
 import { AbstractEntity } from '@/database/abstract.entity';
+import { UserWebsite } from '@/modules/onboarding/entities/user-website.entity';
 import { Role } from '@/modules/permissions/entities/role.entity';
 import { Exclude } from 'class-transformer';
 import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
@@ -12,6 +13,9 @@ export class User extends AbstractEntity<User> {
 
 	@Column({ name: 'role_id', nullable: true })
 	roleId: string;
+
+	@Column({ name: 'last_opened_website_id', nullable: true })
+	lastOpenedWebsiteId: string;
 
 	@Column({ unique: true })
 	email: string;
@@ -86,6 +90,11 @@ export class User extends AbstractEntity<User> {
 	@ManyToOne(() => Role, (role) => role.users, { eager: true, nullable: true })
 	@JoinColumn({ name: 'role_id' })
 	userRole: Role;
+
+	// Relation
+	@ManyToOne(() => UserWebsite, (page) => page.websiteId, { eager: true, nullable: true })
+	@JoinColumn({ name: 'last_opened_website_id' })
+	website: UserWebsite;
 
 	get fullName(): string {
 		return `${this.firstName} ${this.lastName}`.trim();

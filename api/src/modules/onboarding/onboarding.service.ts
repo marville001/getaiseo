@@ -363,6 +363,13 @@ export class OnboardingService {
 	}
 
 	/**
+	 * Get all submitted websites for a user
+	 */
+	async getAllSubmittedWebsites(userId: string): Promise<UserWebsite[]> {
+		return this.onboardingRepository.findByUserId(userId);
+	}
+
+	/**
 	 * Get a single page by ID
 	 */
 	async getPageById(pageId: string, userId: string): Promise<WebsitePage> {
@@ -460,5 +467,18 @@ export class OnboardingService {
 		}
 
 		return this.onboardingRepository.softDeletePage(pageId, userId);
+	}
+
+	/**
+	 * Soft delete a website
+	 */
+	async deleteWebsite(websiteId: string, userId: string): Promise<UserWebsite> {
+		const website = await this.onboardingRepository.findOne({
+			where: { websiteId, userId },
+		});
+		if (!website) {
+			throw new NotFoundException('Website not found');
+		}
+		return this.onboardingRepository.softDeleteWebsite(websiteId, userId);
 	}
 }

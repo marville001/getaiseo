@@ -30,6 +30,15 @@ export class OnboardingController {
 	}
 
 	/**
+	 * Get all the websites submitted by the user
+	 */
+	@Get('websites/all')
+	async getAllSubmittedWebsites(@CurrentUser() user: JwtPayload) {
+		console.log('Fetching all submitted websites for user:', user.sub);
+		return this.onboardingService.getAllSubmittedWebsites(user.sub);
+	}
+
+	/**
 	 * Step 2: Start scraping the website
 	 */
 	@Post('website/:websiteId/scrape')
@@ -117,5 +126,14 @@ export class OnboardingController {
 		@Param('pageId') pageId: string,
 	) {
 		return this.onboardingService.deletePage(pageId, user.sub);
+	}
+
+	//delete a website
+	@Delete('website/:websiteId')
+	async deleteWebsite(
+		@CurrentUser() user: JwtPayload,
+		@Param('websiteId') websiteId: string,
+	) {
+		return this.onboardingService.deleteWebsite(websiteId, user.sub);
 	}
 }

@@ -60,6 +60,10 @@ export class UserWebsite extends AbstractEntity<UserWebsite> {
 	@Column({ name: 'is_primary', default: false })
 	isPrimary: boolean;
 
+	//deletedBy
+	@Column({ name: 'deleted_by', nullable: true })
+	deletedBy?: string;
+
 	@Column({ name: 'total_pages_found', default: 0 })
 	totalPagesFound: number;
 

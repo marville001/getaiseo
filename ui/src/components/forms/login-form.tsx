@@ -1,5 +1,6 @@
 'use client';
 
+import { GoogleAuthButton } from '@/components/auth/google-auth-button';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -13,12 +14,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
-import { GoogleAuthButton } from '@/components/auth/google-auth-button';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { z } from 'zod';
@@ -38,9 +38,10 @@ interface Props {
 
 export default function LoginForm({ onSuccess, isModal = false }: Props) {
   const [showPassword, setShowPassword] = useState(false);
-  const { login, loading } = useAuth();
+  const { user: currentUser, login, loading } = useAuth();
 
   const router = useRouter();
+
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -56,8 +57,7 @@ export default function LoginForm({ onSuccess, isModal = false }: Props) {
       const result = await login(data.email, data.password, !isModal);
 
       if (result.success) {
-        toast.success('Login successful! Redirecting...');
-        router.replace('/dashboard');
+        toast.success('Login successful! Redirecting...');    
         onSuccess?.();
       } else {
         toast.error(result.error || 'Login failed. Please try again.');
@@ -67,6 +67,16 @@ export default function LoginForm({ onSuccess, isModal = false }: Props) {
       toast.error('An unexpected error occurred. Please try again.');
     }
   };
+
+  useEffect(() => {
+    if (currentUser && currentUser.lastOpenedWebsiteId) {
+      if (currentUser && currentUser.lastOpenedWebsiteId) {
+        router.replace(`/dashboard/websites/${currentUser.lastOpenedWebsiteId}`);
+      } else {
+        router.replace('/dashboard/websites');
+      }
+    }
+  }, [currentUser,router]);
 
   return (
     <Form {...form}>

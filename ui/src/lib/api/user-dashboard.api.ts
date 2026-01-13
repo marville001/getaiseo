@@ -37,8 +37,14 @@ export interface UserDashboardData {
 	recentKeywords: RecentKeyword[];
 }
 
-export const getUserDashboardData = async (): Promise<UserDashboardData> => {
-	const response = await apiClient.get<{ data: UserDashboardData; }>('/users/dashboard');
+export const getUserDashboardData = async (websiteId: string): Promise<UserDashboardData> => {
+	const response = await apiClient.get<{ data: UserDashboardData; }>(`/users/dashboard/${websiteId}`);
+	return response.data.data;
+};
+
+//update last opened website id
+export const updateLastOpenedWebsite = async (websiteId: string): Promise<void> => {
+	const response = await apiClient.patch(`/users/last-opened-website/${websiteId}`);
 	return response.data.data;
 };
 
