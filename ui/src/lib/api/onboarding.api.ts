@@ -125,6 +125,18 @@ export const onboardingApi = {
 		return response.data?.data;
 	},
 
+	// get all user's websites
+	getAllUserWebsites: async (): Promise<UserWebsite[]> => {
+		const response = await api.get('/onboarding/websites');
+		return response.data?.data;
+	},
+
+	// delete a website
+	deleteWebsite: async (websiteId: string): Promise<UserWebsite> => {
+		const response = await api.delete(`/onboarding/website/${websiteId}`);
+		return response.data?.data;
+	},
+
 	// Get a single page by ID
 	getPageById: async (pageId: string): Promise<WebsitePage> => {
 		const response = await api.get(`/onboarding/pages/${pageId}`);

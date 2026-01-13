@@ -537,23 +537,34 @@ export class UsersService {
 	}
 
 	/**
-	 * Get user dashboard data with stats, recent articles, and recent keywords
+	 * Get user dashboard data with stats, recent articles, and recent keywords for a specific website
 	 */
-	async getUserDashboardData(userId: string) {
+	async getUserDashboardData(userId: string, websiteId: string): Promise<{
+		stats: {
+			totalKeywords: number;
+			primaryKeywords: number;
+			secondaryKeywords: number;
+			totalArticles: number;
+			draftArticles: number;
+			generatedArticles: number;
+			publishedArticles: number;
+		};
+		recentArticles: Article[];
+		recentKeywords: Keyword[];
+	}> {
 		// Get keyword stats
-		const totalKeywords = await this.keywordsRepository.count({ where: { userId } });
-		const primaryKeywords = await this.keywordsRepository.count({ where: { userId, isPrimary: true } });
-		const secondaryKeywords = await this.keywordsRepository.count({ where: { userId, isPrimary: false } });
-
+		const totalKeywords = await this.keywordsRepository.count({ where: { userId, websiteId } });
+		const primaryKeywords = await this.keywordsRepository.count({ where: { userId, isPrimary: true, websiteId } });
+		const secondaryKeywords = await this.keywordsRepository.count({ where: { userId, isPrimary: false, websiteId } });
 		// Get article stats
-		const totalArticles = await this.articlesRepository.count({ where: { userId } });
-		const draftArticles = await this.articlesRepository.count({ where: { userId, status: ArticleStatus.DRAFT } });
-		const generatedArticles = await this.articlesRepository.count({ where: { userId, status: ArticleStatus.GENERATED } });
-		const publishedArticles = await this.articlesRepository.count({ where: { userId, status: ArticleStatus.PUBLISHED } });
+		const totalArticles = await this.articlesRepository.count({ where: { userId, websiteId } });
+		const draftArticles = await this.articlesRepository.count({ where: { userId, status: ArticleStatus.DRAFT, websiteId } });
+		const generatedArticles = await this.articlesRepository.count({ where: { userId, status: ArticleStatus.GENERATED, websiteId } });
+		const publishedArticles = await this.articlesRepository.count({ where: { userId, status: ArticleStatus.PUBLISHED, websiteId } });
 
 		// Get recent articles
 		const recentArticles = await this.articlesRepository.find({
-			where: { userId },
+			where: { userId, websiteId },
 			order: { createdAt: 'DESC' },
 			take: 5,
 			relations: ['primaryKeyword'],
@@ -571,7 +582,7 @@ export class UsersService {
 
 		// Get recent keywords
 		const recentKeywords = await this.keywordsRepository.find({
-			where: { userId },
+			where: { userId, websiteId},
 			order: { createdAt: 'DESC' },
 			take: 5,
 			select: {
@@ -599,5 +610,17 @@ export class UsersService {
 			recentKeywords,
 
 		};
+	}
+
+	async updateLastOpenedWebsite(userId: string, websiteId: string): Promise<User> {
+		const user = await this.usersRepository.findOne({ where: { userId } });
+		if (!user) {
+			throw new NotFoundException('User not found');
+		}
+		await this.usersRepository.update(
+			{ userId },
+			{ lastOpenedWebsiteId: websiteId }
+		);
+		return this.usersRepository.findOne({ where: { userId } });
 	}
 }
