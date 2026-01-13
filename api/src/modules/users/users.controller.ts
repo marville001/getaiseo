@@ -114,10 +114,10 @@ export class UsersController {
 		return this.usersService.findOne(user.sub);
 	}
 
-	@Get('dashboard')
+	@Get('dashboard/:websiteId')
 	@UseGuards(JwtAuthGuard)
-	async getDashboard(@CurrentUser() user: JwtPayload) {
-		return this.usersService.getUserDashboardData(user.sub);
+	async getDashboard(@CurrentUser() user: JwtPayload, @Param('websiteId') websiteId: string) {
+		return this.usersService.getUserDashboardData(user.sub, websiteId);
 	}
 
 	@Patch('profile')
@@ -149,6 +149,16 @@ export class UsersController {
 			success: true,
 			message: 'Password changed successfully'
 		};
+	}
+
+	// additional endpoint to keep track of the lastopenedWebsiteId
+	@Patch('last-opened-website/:websiteId')
+	@UseGuards(JwtAuthGuard)
+	async updateLastOpenedWebsite(
+		@CurrentUser() user: JwtPayload,
+		@Param('websiteId') websiteId: string
+	) {
+		return this.usersService.updateLastOpenedWebsite(user.sub, websiteId);
 	}
 
 }
