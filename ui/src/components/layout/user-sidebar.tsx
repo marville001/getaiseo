@@ -12,6 +12,7 @@ import {
   Link2,
   LogOut,
   Menu,
+  Settings,
   User,
   X
 } from "lucide-react";
@@ -59,6 +60,12 @@ const menuItems: MenuItem[] = [
     title: "Profile",
     href: "/dashboard/profile",
     icon: User,
+    children: []
+  },
+  {
+    title: "Website Settings",
+    href: "/dashboard/website-settings",
+    icon: Settings,
     children: []
   },
 ];

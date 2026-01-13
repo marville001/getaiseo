@@ -24,7 +24,7 @@ export default async function AdminLayout({ children }: PropsWithChildren) {
   }
 
   return (
-    <ProtectedRoute requireOnboarding={false}>
+    <ProtectedRoute >
       {children}
     </ProtectedRoute>
   );
